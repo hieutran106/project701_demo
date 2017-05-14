@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+    <title>Flower Species Recognition</title>
+
+    <head>
+
+
+        <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css"
+              media="all"/>
+        <link rel="stylesheet" type="text/css" href="static/css/main.css" media="all"/>
+
+        <style type="text/css">
+            .slidingDiv {
+                display: none;
+                background-color: #BDBDBD;
+                padding: 5px;
+                margin-top: 1px;
+                border-bottom: 5px solid #1C1C1C;
+                border-top: 5px solid #1C1C1C;
+                zoom: 1;
+            }
+        </style>
+
+        <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+        <script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+        <script type="text/javascript" src="static/js/main.js"></script>
+
+    </head>
+
+<body>
+<div class="container">
+    <h2>Flower Species Recognition</h2>
+
+
+    <p>This project is about flower species recognition based on images. So far,
+        the recognition system has learnt the appearance of 12 different flower species which
+        are common in the United Kingdom</p>
+    <p>In the demo below, users are welcome to test out the recognition system by dragging an image from the left
+        into the box to the right and clicking the submit button. </p>
+
+    <h3> Demo </h3>
+
+    <p>Interested in one of the flowers below? Just drag it into the box, click "submit" and get additional information
+        about it!</p>
+
+    <div class="content">
+        <div id="gallery" class="gallery ui-helper-reset ui-helper-clearfix">
+            {% for imgfname in test_images %}
+            <div>
+                <img src="{{url_for('static',filename='upload_img/'+imgfname)}}" file_name={{imgfname}}>
+            </div>
+
+            {% endfor %}
+        </div>
+
+        <div id="search-container">
+            <div id="search-window" class="ui-widget-content ui-state-default">
+                <div class="search-window-element"></div>
+            </div>
+            <div id="submit-button">
+                <form id="submit-form" name="submit-form">
+                    <input id="input-url" type="hidden" name="file_name" value=""/>
+                    <select id="input_feature" name="feature">
+                        <option value="color">Color feature</option>
+                        <option value="sift">SIFT feature</option>
+                    </select>
+                    <input id="submitBtn" type="submit">
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="prediction_container">
+
+    </div>
+
+    <h3> Technology </h3>
+    <p>Recognition proceeds in two steps: feature extraction and classification. </p>
+    <h3> Accuracy Comparisons </h3>
+
+
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

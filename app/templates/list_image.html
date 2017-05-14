@@ -1,0 +1,10 @@
+{% for prediction in predictions %}
+<div class="image-box">
+    <div class="imgBoxInner">
+        <img src={{prediction['file_name']}} alt="Some image">
+        <p>{{prediction['flower_name']}}</p>
+    </div>
+
+
+</div>
+{% endfor %}
