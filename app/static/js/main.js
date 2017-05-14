@@ -3,7 +3,7 @@ $(document).ready(function(){
 	$('#submit-form').on('submit', function(e) { //use on if jQuery 1.7+
         e.preventDefault();  //prevent form from submitting
         var data = $("#submit-form :input").serializeArray();
-        console.log(data); //use the console for debugging, F12 in Chrome, not alerts
+        //console.log(data); //use the console for debugging, F12 in Chrome, not alerts
 
 		x=$("#input-url").val();//x is file_name
 		if (x==null || x==""){
@@ -12,9 +12,9 @@ $(document).ready(function(){
 		} else {
 			feature=$("#input_feature").val();
 			request_url="/api/predict?file_name="+x+"&feature="+feature;
-			console.log(request_url)
+			//console.log(request_url)
 			$.ajax({url: request_url, success: function(result){
-				console.log(result)
+				//console.log(result)
 				$("#prediction_container").html(result);
 			}});
 		}
@@ -61,7 +61,7 @@ $(document).ready(function(){
 		
 		// prevent the item from shifting
 		$item.parent().css("width", $item.width());
-		console.log($item.attr("file_name"))
+		//console.log($item.attr("file_name"))
 		
 		// update the url
 		$("#input-url").attr("value", $item.attr("file_name"));
