@@ -1,19 +1,20 @@
-import cv2
-from os.path import exists, isdir, basename, join, splitext
+from os.path import isdir, basename, join, splitext
+import os
 import numpy
 from numpy import zeros, resize, sqrt, histogram, hstack, vstack, savetxt, zeros_like
 from glob import glob
 import scipy.cluster.vq as vq
 import cPickle
 import pandas as pd
+from descriptor.siftdesciptor import computeSIFT, computeHistograms
+from descriptor.logger import Logger
+import sys
 
-datasetpath = './dataset_img'
-PRE_ALLOCATION_BUFFER = 300  # for sift
-NUMBER_OF_DESCRIPTOR = 300  # for sift
+datasetpath = 'dataset_img'
 EXTENSIONS = [".jpg", ".bmp", ".png", ".pgm", ".tif", ".tiff"]
 CODEBOOK_FILE = 'codebook.file'
 K_THRESH = 1  # early stopping threshold for kmeans originally at 1e-5, increased for speedup
-HISTOGRAMS_FILE = 'trainingdata_svm.csv'
+HISTOGRAMS_FILE = 'siftFeatures.csv'
 
 
 def get_categories(datasetpath):
@@ -30,23 +31,9 @@ def get_imgfiles(path):
                       if splitext(fname)[-1].lower() in EXTENSIONS])
     return all_files
 
-def dict2numpy(dict, total_features):
-    array = zeros((total_features, 128),dtype=numpy.float32)
-    pivot = 0
-    for key in dict.keys():
-        value = dict[key]
-        nelements = value.shape[0]
-        while pivot + nelements > array.shape[0]:
-            padding = zeros_like(array)
-            array = vstack((array, padding))
-        array[pivot:pivot + nelements] = value
-        pivot += nelements
-    array = resize(array, (pivot, 128))
-    return array
 
-def dict2numpy_old(dict):
-    nkeys = len(dict)
-    array = zeros((nkeys * PRE_ALLOCATION_BUFFER, 128),dtype=numpy.float16)
+def dict2numpy(dict, total_features):
+    array = zeros((total_features, 128), dtype=numpy.float32)
     pivot = 0
     for key in dict.keys():
         value = dict[key]
@@ -64,38 +51,17 @@ def extractSift(input_files, mask=False):
     all_features_dict = {}
     num_descriptor = 0
     for i, fname in enumerate(input_files):
-        img = cv2.imread(fname)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        #sift = cv2.SIFT(NUMBER_OF_DESCRIPTOR)
-        sift = cv2.SIFT(contrastThreshold=0.06)
-        if (mask):
-            (h, w) = img.shape[:2]
-            (cX, cY) = ((int)(w * 0.5), (int)(h * 0.5))
-            (axesX, axesY) = ((int)((w * 0.8) / 2), (int)((h * 0.8) / 2))
-            ellipMask = numpy.zeros(img.shape[:2], dtype="uint8")
-            cv2.ellipse(ellipMask, (cX, cY), (axesX, axesY), 0, 0, 360, 255, -1)
-            kp, des = sift.detectAndCompute(gray, ellipMask, None)
-        else:
-            kp, des = sift.detectAndCompute(gray, None)
-
-        if (len(kp)==0):
-            print "No feature found for image :",fname
+        kp, des = computeSIFT(fname, mask)
+        if (len(kp) == 0):
+            print "No feature found for image :", fname
         else:
             num_descriptor += len(des)
         all_features_dict[fname] = des
     return all_features_dict, num_descriptor
 
 
-def computeHistograms(codebook, descriptors):
-    code, dist = vq.vq(descriptors, codebook)
-    histogram_of_words, bin_edges = histogram(code,
-                                              bins=range(codebook.shape[0] + 1),
-                                              normed=True)
-    return histogram_of_words
-
-
 if __name__ == '__main__':
-
+    sys.stdout = Logger()
     print "---------------------"
     print "## loading the dataset_img and extracting the sift features"
     cats = get_categories(datasetpath)
@@ -129,13 +95,15 @@ if __name__ == '__main__':
     all_features_array = dict2numpy(all_features, total_descriptor)
     nfeatures = all_features_array.shape[0]
     nclusters = int(sqrt(nfeatures / 2))
-    nclusters=100
+    nclusters = 100
     print "Number of cluster:", nclusters
     codebook, distortion = vq.kmeans(all_features_array,
                                      nclusters,
                                      thresh=K_THRESH)
     print "k-Means terminated."
-    with open(datasetpath + CODEBOOK_FILE, 'wb') as f:
+
+    output_path = os.path.abspath("../app/training_data") + "/" + CODEBOOK_FILE
+    with open(output_path, 'wb') as f:
         # save codebook into a binary file
         cPickle.dump(codebook, f, protocol=cPickle.HIGHEST_PROTOCOL)
 
@@ -153,12 +121,12 @@ if __name__ == '__main__':
             # create dataframe to store histogram of visual word occurences
             # Convert feature vector to a list
             result = numpy.squeeze(word_histgram).tolist()
-            result.append(imagefname)
+            result.append(imagefname.replace("\\", "/"))
+            #result.append(imagefname)
             result.append(cat)
             df.loc[len(df)] = result
 
     print "---------------------"
-    print "## write the histograms to file to pass it to the svm"
-    df.to_csv(datasetpath + HISTOGRAMS_FILE, index_label="ID")
-    print "---------------------"
-    print "## train svm"
+    print "## write the histograms to file to pass it to the classifier"
+    output_path = os.path.abspath("../app/training_data") + "/" + HISTOGRAMS_FILE
+    df.to_csv(output_path, index_label="ID")
