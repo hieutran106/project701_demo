@@ -1,10 +1,12 @@
-{% for prediction in predictions %}
-<div class="image-box">
-    <div class="imgBoxInner">
-        <img src={{prediction['file_name']}} alt="Some image">
-        <p>{{prediction['flower_name']}}</p>
+{% for dict in final_output %}
+    <div>
+        <p>{{ dict['probability']*100 }}% of your input is {{ dict['flower_name'] }}</p>
+        <div>
+        {% for imgfile in dict['files'] %}
+            <div>
+                <img src={{ imgfile }} alt="Some image">
+            </div>
+        {% endfor %}
+        </div>
     </div>
-
-
-</div>
 {% endfor %}
