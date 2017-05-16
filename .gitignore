@@ -1,3 +1,6 @@
 .idea
 *.jpg
 *.pyc
+*.csv
+*.file
+*.txt

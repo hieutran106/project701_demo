@@ -1,9 +1,9 @@
 import sys
 
 class Logger(object):
-    def __init__(self):
+    def __init__(self,log_file):
         self.terminal = sys.stdout
-        self.log = open("logfile.txt", "a")
+        self.log = open(log_file, "a")
 
     def write(self, message):
         self.terminal.write(message)

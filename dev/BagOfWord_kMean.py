@@ -9,7 +9,6 @@ import pandas as pd
 from descriptor.siftdesciptor import computeSIFT, computeHistograms
 from descriptor.logger import Logger
 import sys
-import hashlib
 
 datasetpath = 'dataset_img'
 EXTENSIONS = [".jpg", ".bmp", ".png", ".pgm", ".tif", ".tiff"]
@@ -62,16 +61,8 @@ def extractSift(input_files, mask=False):
     return all_features_dict, num_descriptor
 
 
-def md5(fname):
-    hash_md5 = hashlib.md5()
-    with open(fname, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
-
-
 if __name__ == '__main__':
-    sys.stdout = Logger("log/SIFT_extraction_log.txt")
+    sys.stdout = Logger("log/kMean_log.txt")
     print "---------------------"
     print "## loading the dataset_img and extracting the sift features"
     cats = get_categories(datasetpath)
@@ -82,27 +73,71 @@ if __name__ == '__main__':
     print "---------------------"
     all_files = []
     all_files_labels = {}
-    all_features = {}
     cat_label = {}
     cat_dic = {}
-    total_descriptor = 0
     for cat, label in zip(cats, range(ncats)):
         cat_path = join(datasetpath, cat)
         cat_files = get_imgfiles(cat_path)
         cat_dic[cat] = cat_files
-        cat_features, nDes = extractSift(cat_files, mask=True)
-        print "Features for dataset_img in category \"", cat, "\":", str(nDes)
-        total_descriptor += nDes
         all_files = all_files + cat_files
-        all_features.update(cat_features)
         cat_label[cat] = label
         for i in cat_files:
             all_files_labels[i] = label
 
-    print "Total features extracted:", str(total_descriptor)
-    print "##Write total feature to file:"
+
+    print "##Load all features from file"
     output_path = os.path.abspath("../app/training_data") + "/" + TOTAL_FEATURES_FILE
+    print output_path
+    with open(output_path, 'rb') as f:
+        # save codebook into a binary file
+        all_features=cPickle.load(f)
+
+
+    total_descriptor=0;
+    for k in all_features:
+        total_descriptor=total_descriptor+len(all_features[k])
+
+    print total_descriptor
+
+
+    print "---------------------"
+    print "## computing the visual words via k-means"
+    all_features_array = dict2numpy(all_features, total_descriptor)
+    nfeatures = all_features_array.shape[0]
+    nclusters = int(sqrt(nfeatures / 2))
+    nclusters = 100
+    print "Number of cluster:", nclusters
+    codebook, distortion = vq.kmeans(all_features_array,
+                                     nclusters,
+                                     thresh=K_THRESH)
+    print "k-Means terminated."
+
+    output_path = os.path.abspath("../app/training_data") + "/" + CODEBOOK_FILE
     with open(output_path, 'wb') as f:
-        # save all_features into a binary file
-        cPickle.dump(all_features, f, protocol=cPickle.HIGHEST_PROTOCOL)
-    print "MD5:", md5(output_path)
+        # save codebook into a binary file
+        cPickle.dump(codebook, f, protocol=cPickle.HIGHEST_PROTOCOL)
+
+    print "## compute the visual words histograms for each image"
+    print "Number of cluster: ", nclusters
+    all_word_histgrams = {}
+    columns = range(0, nclusters)
+    columns.append('file_name')
+    columns.append('flower_name')
+    df = pd.DataFrame(columns=columns)
+
+    for cat in cat_dic:
+        for imagefname in cat_dic[cat]:
+            word_histgram = computeHistograms(codebook, all_features[imagefname])
+            # create dataframe to store histogram of visual word occurences
+            # Convert feature vector to a list
+            result = numpy.squeeze(word_histgram).tolist()
+            result.append(imagefname.replace("\\", "/"))
+            # result.append(imagefname)
+            result.append(cat)
+            df.loc[len(df)] = result
+
+    print "---------------------"
+    print "## write the histograms to file to pass it to the classifier"
+    output_path = os.path.abspath("../app/training_data") + "/" + HISTOGRAMS_FILE
+    df.to_csv(output_path, index_label="ID")
+
