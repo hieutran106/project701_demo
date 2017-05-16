@@ -1,10 +1,20 @@
 {% for dict in final_output %}
     <div>
-        <p>{{ dict['probability']*100 }}% of your input is {{ dict['flower_name'] }}</p>
-        <div>
+        <div class="text">
+            <p>
+                {% if dict['probability'] > 10 %}
+                The probability of the photo being <b><a href={{ dict['wiki_url'] }}>{{ dict['flower_name'] }}</a></b> is nearly <b>{{ dict['probability'] }} % </b></p>
+                {% else %}
+                There is a very small possibility that it is <b><a href={{ dict['wiki_url'] }}>{{ dict['flower_name'] }}</a></b> (<b>{{ dict['probability'] }} %</b>)
+                {% endif %}
+        </div>
+
+        <div class="flower-set">
         {% for imgfile in dict['files'] %}
-            <div>
-                <img src={{ imgfile }} alt="Some image">
+            <div class="flower">
+                <div class="flower-inner">
+                    <img class="fluid" src={{ imgfile }} alt="Some image">
+                </div>
             </div>
         {% endfor %}
         </div>

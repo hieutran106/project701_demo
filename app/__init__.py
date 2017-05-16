@@ -28,7 +28,20 @@ knn.fit(X, y)
 # initialize the color descriptor
 cd = ColorDescriptor((8, 12, 3))
 
-
+#init wiki dict
+wiki_dict={"Buttercup":"https://en.wikipedia.org/wiki/Ranunculus",
+           "Colts Foot":"https://en.wikipedia.org/wiki/Tussilago",
+           "Daffodil":"https://en.wikipedia.org/wiki/Narcissus_(plant)",
+           "Daisy":"https://en.wikipedia.org/wiki/Daisy",
+           "Danlelion":"https://en.wikipedia.org/wiki/Taraxacum",
+           "Fritillary":"https://en.wikipedia.org/wiki/Fritillaria",
+           "Iris":"https://en.wikipedia.org/wiki/Iris_(plant)",
+           "Lily Valley":"https://en.wikipedia.org/wiki/Lily_of_the_valley",
+           "Pansy":"https://en.wikipedia.org/wiki/Pansy",
+           "Sunflower":"https://en.wikipedia.org/wiki/Helianthus",
+           "Tigerlily":"https://en.wikipedia.org/wiki/Lilium_lancifolium",
+           "Windflower":"https://en.wikipedia.org/wiki/Anemone"
+           }
 def generateHTML(predict_result):
     prediction = []
     for i in predict_result[0]:
@@ -47,8 +60,9 @@ def generateFinalOutput(predictIDs, sorted_dict):
     result = []
     for tup in sorted_dict:
         dict = {}
-        dict["probability"] = tup[1]
+        dict["probability"] = int(round(tup[1]*100))
         dict["flower_name"] = tup[0]
+        dict["wiki_url"]=wiki_dict[tup[0]]
         image_array = []
         for i in predictIDs:
             row = df.ix[i]
