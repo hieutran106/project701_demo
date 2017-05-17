@@ -60,17 +60,22 @@ wiki_dict={"Buttercup":"https://en.wikipedia.org/wiki/Ranunculus",
 
 
 
-def generateFinalOutput(predictIDs, sorted_dict):
+def generateFinalOutput(predictIDs, sorted_dict,feature='color'):
     result = []
     for tup in sorted_dict:
         dict = {}
         dict["probability"] = int(round(tup[1]*100))
         dict["flower_name"] = tup[0]
+        print "flower name:",tup[0]
         dict["wiki_url"]=wiki_dict[tup[0]]
         image_array = []
         for i in predictIDs:
-            row = df_color.ix[i]
+            if feature == 'color':
+                row = df_color.ix[i]
+            else:
+                row = df_sift.ix[i]
             flower_name = row['flower_name']
+            print "predict ids:", i, "flower_name:",flower_name
             file_name = url_for('static', filename=row['file_name'], _external=True)
             if flower_name == tup[0]:
                 image_array.append(file_name)
@@ -97,6 +102,7 @@ def get_tasks():
         # get k neighbor
         final = knn_color.kneighbors(input_feature, return_distance=False)
         p = np.squeeze(knn_color.predict_proba(input_feature)).tolist()
+        flower_name = knn_color.classes_
     else:
         print "SIFT feature"
         kp, des=computeSIFT("./app/static/upload_img/" + input_image)
@@ -104,14 +110,17 @@ def get_tasks():
         print "input feature",input_feature
         #input_feature = np.array(des).reshape(1, -1)
         #print input_feature
-        print "leng input:",str(len(input_feature))
+        print "leng input: ",str(len(input_feature))
         # get k neighbor
         final = knn_sift.kneighbors(input_feature, return_distance=False)
+        print "final:",final
         p = np.squeeze(knn_sift.predict_proba(input_feature)).tolist()
+        flower_name = knn_sift.classes_
+        print "flower_name: ",flower_name
 
     final = np.squeeze(final).tolist()
     print p
-    flower_name = knn_color.classes_
+
 
     pro_dict = {}
     for i in range(0, len(p)):
@@ -120,7 +129,7 @@ def get_tasks():
 
     print pro_dict
     sorted_dict = sorted(pro_dict.items(), key=operator.itemgetter(1), reverse=True)
-    final_output = generateFinalOutput(final, sorted_dict)
+    final_output = generateFinalOutput(final, sorted_dict,feature)
     return render_template('list_image.html', final_output=final_output)
 
 
