@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+    <title>Flower Species Recognition</title>
+
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css"
+              media="all"/>
+        <link rel="stylesheet" type="text/css" href="static/css/main.css" media="all"/>
+
+        <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+        <script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    </head>
+
+<body>
+<div class="container">
+    <h2>Flower Species Recognition</h2>
+    <p>This project is about flower species recognition based on images. So far,
+        the recognition system has learnt the appearance of 12 different flower species which
+        are common in the United Kingdom</p>
+    <p>In the demo below, users are welcome to test out the recognition system by dragging an image from the left
+        into the box to the right and clicking the submit button. </p>
+
+    <h3> Demo </h3>
+
+    <p>Interested in one of the flowers below? Just upload the image that you want</p>
+    <form id="upload-form" action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+
+        <strong>Files:</strong><br>
+        <input id="file-picker" type="file" name="file" accept="image/*" multiple>
+        <div id="msg"></div>
+        <input type="submit" value="Upload!" id="upload-button">
+    </form>
+</div>
+
+
+</body>
+<script>
+
+    $("#file-picker").change(function () {
+
+        var input = document.getElementById('file-picker');
+
+        for (var i = 0; i < input.files.length; i++) {
+            //koala.jpg, koala.JPG substring(index) lastIndexOf('a') koala.1.jpg
+            var ext = input.files[i].name.substring(input.files[i].name.lastIndexOf('.') + 1).toLowerCase()
+
+            if ((ext == 'jpg') || (ext == 'png')) {
+                $("#msg").text("Files are supported")
+            }
+            else {
+                $("#msg").text("Files are NOT supported")
+                document.getElementById("file-picker").value = "";
+            }
+
+        }
+
+
+    });
+
+</script>
+</html>

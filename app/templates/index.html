@@ -29,12 +29,12 @@
 
     <p>Interested in one of the flowers below? Just drag it into the box, click "submit" and get additional information
         about it!</p>
-
+    <p>If you want to upload an image <a><a href={{ request.url_root+"upload_view" }}>Click here!</a></a></p>
     <div class="content">
         <div id="gallery" class="gallery ui-helper-reset ui-helper-clearfix">
             {% for imgfname in test_images %}
             <div>
-                <img src="{{url_for('static',filename='upload_img/'+imgfname)}}" file_name={{imgfname}}>
+                <img src="{{url_for('static',filename='upload_img/'+imgfname)}}" file_name={{imgfname}} title={{imgfname}}>
             </div>
 
             {% endfor %}

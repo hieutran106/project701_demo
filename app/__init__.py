@@ -7,8 +7,11 @@ from sklearn.neighbors import KNeighborsClassifier
 import cv2
 import operator
 import cPickle
+import os
+from descriptor.util import getTestImages
 
 app = Flask(__name__)
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 CODEBOOK_FILE = 'codebook.file'
 prediction = []
 
@@ -91,10 +94,7 @@ def extractColorFeature(input_file):
     return feature
 
 
-@app.route('/api/predict', methods=['GET'])
-def get_tasks():
-    input_image = request.args.get("file_name")
-    feature = request.args.get("feature")
+def predict(input_image,feature):
     if (feature == "color"):
         print "Color feature"
         color_feature = extractColorFeature("./app/static/upload_img/" + input_image)
@@ -130,21 +130,49 @@ def get_tasks():
     print pro_dict
     sorted_dict = sorted(pro_dict.items(), key=operator.itemgetter(1), reverse=True)
     final_output = generateFinalOutput(final, sorted_dict,feature)
+    return final_output
+
+
+@app.route('/api/predict', methods=['GET'])
+def get_tasks():
+    input_image = request.args.get("file_name")
+    feature = request.args.get("feature")
+    final_output=predict(input_image,feature)
     return render_template('list_image.html', final_output=final_output)
 
 
-# disable cache
-@app.after_request
-def add_header(r):
-    """
-    Add headers to both force latest IE rendering engine or Chrome Frame,
-    and also to cache the rendered page for 10 minutes.
-    """
-    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    r.headers["Pragma"] = "no-cache"
-    r.headers["Expires"] = "0"
-    r.headers['Cache-Control'] = 'public, max-age=0'
-    return r
+'''
+Render HTML
+'''
+
+@app.route('/')
+@app.route('/index')
+def index():
+    test_images=getTestImages()
+    return render_template('index.html',
+                           title='Home',
+                           test_images=test_images)
+@app.route("/upload_view")
+def upload_view():
+    return render_template("upload_view.html")
+
+@app.route("/upload", methods=['POST'])
+def upload():
+    target = os.path.join(APP_ROOT, 'static/upload_img/')
+    print(target)
+
+    if not os.path.isdir(target):
+        os.mkdir(target)
+    for file in request.files.getlist("file"):
+        print(file)
+        filename = file.filename
+        destination = "/".join([target, filename])
+        print(destination)
+        file.save(destination)
 
 
-from app import views
+    test_images = getTestImages()
+    return render_template('index.html',
+                           title='Home',
+                           test_images=test_images)
+

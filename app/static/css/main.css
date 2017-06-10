@@ -117,7 +117,7 @@ p {
 }
 
 #prediction_container .flower-set .flower {
-	flex: 0 0 20%;
+	flex: 0 0 25%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -132,4 +132,7 @@ p {
 img.fluid {
 	width: 100%;
 	height: auto;
+}
+#upload-form {
+	font-size: large;
 }
